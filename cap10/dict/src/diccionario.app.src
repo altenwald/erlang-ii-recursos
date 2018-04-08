@@ -1,0 +1,13 @@
+{application, diccionario, [
+    {description, "Diccionarios"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, {diccionario_app, []}},
+    {applications, [
+        kernel,
+        stdlib,
+        poolboy
+    ]},
+    {env,[]},
+    {modules, []}
+ ]}.
