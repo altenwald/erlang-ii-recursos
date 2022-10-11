@@ -14,9 +14,7 @@
     init/1,
     handle_event/2,
     handle_call/2,
-    handle_info/2,
-    terminate/2,
-    code_change/3
+    terminate/2
 ]).
 
 -type equipo() :: string().
@@ -52,6 +50,7 @@ handle_call(historico, #state{historico=Historico}=State) ->
         {{H,M,S},Quien,Tantos}
     end, lists:reverse(Historico)),
     {ok, Reply, State};
+
 handle_call(resultados, #state{equipo1=E1,
                                equipo2=E2,
                                puntuacion1=P1,
@@ -64,16 +63,15 @@ handle_event({puntua, E1, N}, #state{equipo1 = E1,
     io:format("Gol! de ~s (~p tantos)~n", [E1, N+P1]),
     {ok, State#state{puntuacion1=P1+N,
                      historico=[{os:timestamp(),E1,N}|Historico]}};
+
 handle_event({puntua, E2, N}, #state{equipo2 = E2,
                                      puntuacion2 = P2,
                                      historico = Historico}=State) ->
     io:format("Gol! de ~s (~p tantos)~n", [E2, N+P2]),
     {ok, State#state{puntuacion2=P2+N,
                      historico=[{os:timestamp(),E2,N}|Historico]}};
-handle_event({puntua, _, _}, State) ->
-    {ok, State}.
 
-handle_info(_Info, State) ->
+handle_event({puntua, _, _}, State) ->
     {ok, State}.
 
 terminate([], State) ->
@@ -85,8 +83,5 @@ terminate([], State) ->
     io:format("Resultado final:~n~20s - ~s~n~20b - ~b~n",
               [State#state.equipo1, State#state.equipo2,
                State#state.puntuacion1, State#state.puntuacion2]),
-    [{State#state.equipo1, State#state.puntuacion1,
-      State#state.equipo2, State#state.puntuacion2}].
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+    #{State#state.equipo1 => State#state.puntuacion1,
+      State#state.equipo2 => State#state.puntuacion2}.

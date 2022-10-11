@@ -12,9 +12,7 @@
     init/1,
     handle_event/2,
     handle_call/2,
-    handle_info/2,
-    terminate/2,
-    code_change/3
+    terminate/2
 ]).
 
 -type equipo() :: string().
@@ -49,6 +47,7 @@ handle_event({puntua, E1, N}, #state{equipo1 = E1,
     Line = io_lib:format("~2..0b:~2..0b:~2..0b;~s;~p~n", [H,M,S,E1,N+P1]),
     file:write(PID, Line),
     {ok, State#state{puntuacion1=P1+N}};
+
 handle_event({puntua, E2, N}, #state{equipo2 = E2,
                                      puntuacion2 = P2,
                                      fichero=PID}=State) ->
@@ -57,19 +56,14 @@ handle_event({puntua, E2, N}, #state{equipo2 = E2,
     Line = io_lib:format("~2..0b:~2..0b:~2..0b;~s;~p~n", [H,M,S,E2,N+P2]),
     file:write(PID, Line),
     {ok, State#state{puntuacion2=P2+N}};
+
 handle_event({puntua, _, _}, State) ->
     {ok, State}.
 
-handle_info(_Info, State) ->
-    {ok, State}.
-
-terminate([], #state{fichero=PID}=State) ->
+terminate([], #state{fichero = PID} = State) ->
     file:write(PID,
                io_lib:format("~n~s;~b~n~s;~b~n",
                              [State#state.equipo1, State#state.puntuacion1,
                               State#state.equipo2, State#state.puntuacion2])),
     file:close(PID),
     ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.

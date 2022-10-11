@@ -1,12 +1,5 @@
--module(logs_consola).
--author('manuel@altenwald.com').
-
+-module(simpleevent).
 -behaviour(gen_event).
-
--export([
-    add_handler/0,
-    delete_handler/0
-]).
 
 -export([
     init/1,
@@ -19,11 +12,11 @@
 
 -record(state, {}).
 
-add_handler() ->
-    gen_event:add_handler(logs, ?MODULE, []).
+add_handler(EventMgrRef) ->
+    gen_event:add_handler(EventMgrRef, ?MODULE, []).
 
-delete_handler() ->
-    gen_event:delete_handler(logs, ?MODULE, []).
+delete_handler(EventMgrRef) ->
+    gen_event:delete_handler(EventMgrRef, ?MODULE, []).
 
 init([]) ->
     {ok, #state{}}.
@@ -32,16 +25,17 @@ handle_call(_Request, State) ->
     Reply = ok,
     {ok, Reply, State}.
 
-handle_event(Event, State) ->
-    io:format("~p~n", [Event]),
+handle_event(_Event, State) ->
     {ok, State}.
 
+% opcional
 handle_info(_Info, State) ->
     {ok, State}.
 
+% opcional
 terminate([], _State) ->
     ok.
 
+% opcional
 code_change(_OldVsn, State, _Extra) ->
-    io:format("consola no cambia!~n", []),
     {ok, State}.

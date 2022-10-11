@@ -1,4 +1,6 @@
 -module(error_line).
+-author(manuel@altenwald.com).
+
 -behaviour(gen_event).
 
 -export([
@@ -8,10 +10,7 @@
 -export([
     init/1,
     handle_event/2,
-    handle_call/2,
-    handle_info/2,
-    terminate/2,
-    code_change/3
+    handle_call/2
 ]).
 
 -record(state, {}).
@@ -32,15 +31,6 @@ handle_event(Event, State) ->
     io:format("~s ~s~n", [get_date(), get_event(Event)]),
     {ok, State}.
 
-handle_info(_Info, State) ->
-    {ok, State}.
-
-terminate([], _State) ->
-    ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
 get_date() ->
     {Y,M,D} = date(),
     {H,I,S} = time(),
@@ -49,9 +39,12 @@ get_date() ->
 
 get_event({error_report, _, {_, _, Msg}}) ->
     io_lib:format("[ERROR REPORT] ~p", [Msg]);
+
 get_event({error, _, {_, Format, Args}}) ->
     io_lib:format("[ERROR] " ++ Format, Args);
+
 get_event({info_report, _, {_, _, Msg}}) ->
     io_lib:format("[INFO REPORT] ~p", [Msg]);
+
 get_event({info_msg, _, {_, Format, Args}}) ->
     io_lib:format("[INFO] " ++ Format, Args).
