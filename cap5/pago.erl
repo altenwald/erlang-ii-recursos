@@ -1,7 +1,7 @@
 -module(pago).
 -author('manuel@altenwald.com').
 
--behaviour(gen_fsm).
+-behaviour(gen_statem).
 
 -export([
     start_link/0,
@@ -14,15 +14,9 @@
 ]).
 
 -export([
+    callback_mode/0,
     init/1,
-    credenciales/3,
-    forma_pago/3,
-    pago_tarjeta/3,
-    pago_cuenta/3,
-    pagado/3,
-    handle_sync_event/4,
-    handle_event/3,
-    handle_info/3,
+    handle_event/4,
     terminate/3,
     code_change/4
 ]).
@@ -30,81 +24,86 @@
 -type forma_pago() :: tarjeta | domiciliar.
 
 -record(state, {
-	nombre :: string(),
-	forma_pago :: forma_pago(),
-	tarjeta :: string(),
-	cuenta :: string()
+        nombre :: string(),
+        forma_pago :: forma_pago(),
+        tarjeta :: string(),
+        cuenta :: string()
 }).
 
 start_link() ->
-    gen_fsm:start_link(?MODULE, [], []).
+    gen_statem:start_link(?MODULE, [], []).
 
 stop(Name) ->
-    gen_fsm:send_all_state_event(Name, stop).
+    gen_statem:stop(Name).
 
 da_nombre(PID, Nombre) ->
-    gen_fsm:sync_send_event(PID, {nombre, Nombre}).
+    gen_statem:call(PID, {nombre, Nombre}).
 
 da_forma_pago(PID, FormaPago) ->
-    gen_fsm:sync_send_event(PID, {forma_pago, FormaPago}).
+    gen_statem:call(PID, {forma_pago, FormaPago}).
 
 da_tarjeta(PID, Tarjeta) ->
-    gen_fsm:sync_send_event(PID, {tarjeta, Tarjeta}).
+    gen_statem:call(PID, {tarjeta, Tarjeta}).
 
 da_cuenta(PID, Cuenta) ->
-    gen_fsm:sync_send_event(PID, {cuenta, Cuenta}).
+    gen_statem:call(PID, {cuenta, Cuenta}).
 
 obtiene_info(PID) ->
-    gen_fsm:sync_send_all_state_event(PID, info).
+    gen_statem:call(PID, info).
+
+callback_mode() ->
+    handle_event_function.
 
 init([]) ->
     {ok, credenciales, #state{}}.
 
-credenciales({nombre, Nombre}, _From, State) ->
-	{reply, ok, forma_pago, State#state{nombre=Nombre}};
-credenciales(_Msg, _From, State) ->
-	{reply, {error, "necesitamos nombre!"}, credenciales, State}.
+handle_event({call, From}, info, StateName, StateData) ->
+    {keep_state_and_data, [{reply, From, {StateName, StateData}}]};
 
-forma_pago({forma_pago, tarjeta}, _From, State) ->
-	{reply, ok, pago_tarjeta, State#state{forma_pago=tarjeta}};
-forma_pago({forma_pago, domiciliar}, _From, State) ->
-	{reply, ok, pago_cuenta, State#state{forma_pago=domiciliar}};
-forma_pago(_Msg, _From, State) ->
-	{reply, {error, "forma de pago: tarjeta o domiciliar"}, forma_pago, State}.
+handle_event({call, From}, {nombre, Nombre}, credenciales, State) ->
+    {next_state, forma_pago, State#state{nombre=Nombre}, [{reply, From, ok}]};
+handle_event({call, From}, _Event, credenciales, _State) ->
+    {keep_state_and_data,
+     [{reply, From, {error, "necesitamos nombre!"}}]};
 
-pago_tarjeta({tarjeta, Tarjeta}, _From, State) ->
-	{reply, {ok, pagado}, pagado, State#state{tarjeta=Tarjeta}, hibernate};
-pago_tarjeta(_Msg, _From, State) ->
-	{reply, {error, "necesitamos tarjeta"}, pago_tarjeta, State}.
+handle_event({call, From}, {forma_pago, tarjeta}, forma_pago, State) ->
+    {next_state, pago_tarjeta, State#state{forma_pago=tarjeta},
+     [{reply, From, ok}]};
+handle_event({call, From}, {forma_pago, domiciliar}, forma_pago, State) ->
+    {next_state, pago_cuenta, State#state{forma_pago=domiciliar},
+     [{reply, From, ok}]};
+handle_event({call, From}, _Event, forma_pago, _State) ->
+    {keep_state_and_data,
+     [{reply, From, {error, "forma de pago: tarjeta o domiciliar"}}]};
 
-pago_cuenta({cuenta, Cuenta}, _From, State) ->
-	{reply, {ok, pagado}, pagado, State#state{cuenta=Cuenta}, hibernate};
-pago_cuenta(_Msg, _From, State) ->
-	{reply, {error, "necesitamos cuenta"}, pago_cuenta, State}.
+handle_event({call, From}, {tarjeta, Tarjeta}, pago_tarjeta, State) ->
+    {next_state, pagado, State#state{tarjeta=Tarjeta},
+     [{reply, From, {ok,pagado}}, hibernate]};
+handle_event({call, From}, _Event, pago_tarjeta, _State) ->
+    {keep_state_and_data,
+     [{reply, From, {error, "necesitamos tarjeta"}}]};
 
-pagado(_Event, _From, State) ->
-    {reply, {error, ya_pagado}, State, hibernate}.
+handle_event({call, From}, {cuenta, Cuenta}, pago_cuenta, State) ->
+    {next_state, pagado, State#state{cuenta=Cuenta},
+     [{reply, From, {ok,pagado}}, hibernate]};
+handle_event({call, From}, _Event, pago_cuenta, _State) ->
+    {keep_state_and_data,
+     [{reply, From, {error, "necesitamos cuenta"}}]};
 
-handle_sync_event(info, _From, StateName, StateData) ->
-    {reply, {StateName, StateData}, StateName, StateData}.
+handle_event({call, From}, _Event, pagado, _State) ->
+    {keep_state_and_data, [{reply, From, {error, ya_pagado}}, hibernate]}.
 
-handle_event(stop, _StateName, StateData) ->
-    {stop, normal, StateData}.
-
-handle_info(_Info, StateName, StateData) ->
-    {next_state, StateName, StateData}.
-
-terminate(_Reason, pagado, #state{forma_pago=tarjeta}=State) ->
+terminate(normal, pagado, #state{forma_pago = tarjeta} = State) ->
     io:format("~p Nombre: ~s~nTarjeta: ~s~nPagado.~n",
               [self(), State#state.nombre, State#state.tarjeta]),
     ok;
-terminate(_Reason, pagado, #state{forma_pago=domiciliar}=State) ->
+terminate(normal, pagado, #state{forma_pago = domiciliar} = State) ->
     io:format("~p Nombre: ~s~nCuenta: ~s~nPagado.~n",
               [self(), State#state.nombre, State#state.cuenta]),
     ok;
-terminate(_Reason, _StateName, _StateData) ->
+terminate(normal, _StateName, _StateData) ->
     io:format("~p No pagado.~n", [self()]),
     ok.
 
-code_change(_OldVsn, _StateName, StateData, _Extra) ->
-    {ok, StateData}.
+code_change(_OldVsn, StateName, StateData, _Extra) ->
+    {ok, StateName, StateData}.
