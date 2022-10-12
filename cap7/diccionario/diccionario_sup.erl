@@ -15,7 +15,5 @@ init([]) ->
     ChildSpec = #{ id => diccionario,
                    start => {diccionario, start_link, []},
                    restart => permanent,
-                   shutdown => brutal_kill,
-                   type => worker,
-                   modules => [diccionario]},
+                   shutdown => brutal_kill },
     {ok, {SupFlags, [ChildSpec]}}.

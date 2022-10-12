@@ -15,7 +15,5 @@ init([]) ->
     ChildSpec = #{ id => tareas,
                    start => {tarea, start_link, []},
                    restart => transient,
-                   shutdown => brutal_kill,
-                   type => worker,
-                   modules => [tarea]},
+                   shutdown => brutal_kill },
     {ok, {SupFlags, [ChildSpec]}}.

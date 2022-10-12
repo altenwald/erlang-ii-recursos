@@ -13,9 +13,7 @@ init([]) ->
                   intensity => 10,
                   period => 1 },
     ChildBase = #{ restart => permanent,
-                   shutdown => brutal_kill,
-                   type => worker,
-                   modules => [semaforo]},
+                   shutdown => brutal_kill },
     Links = [semaforo2, semaforo3],
     ChildSpec = [
         ChildBase#{ id => semaforo1,

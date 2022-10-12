@@ -15,7 +15,5 @@ init([]) ->
     ChildSpec = #{ id => public_logs,
                    start => {public_logs, start_link, []},
                    restart => permanent,
-                   shutdown => 500,
-                   type => worker,
-                   modules => [public_logs, file] },
+                   shutdown => 500 },
     {ok, {SupFlags, [ChildSpec]}}.
