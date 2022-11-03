@@ -5,6 +5,7 @@
 
 -export([
     init/1,
+    handle_continue/2,
     handle_call/3,
     handle_cast/2,
     handle_info/2,
@@ -19,6 +20,9 @@ start_link() ->
 
 init([]) ->
     {ok, #state{}}.
+
+handle_continue(_Continue, State) ->
+    {noreply, State}.
 
 handle_call(_Msg, _From, State) ->
     {reply, ok, State}.

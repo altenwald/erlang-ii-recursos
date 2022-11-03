@@ -1,0 +1,2 @@
+{{release_name}} (v{{release_version}})
+Built with erts-{{release_erts_version}}

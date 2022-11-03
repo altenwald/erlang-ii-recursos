@@ -17,24 +17,23 @@
     handle_cast/2,
     handle_info/2,
     terminate/2,
-    code_change/3,
-    format_status/2
+    format_status/1
 ]).
 
 start_link(Servers) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Servers, []).
 
 stop() ->
-    gen_server:cast(?MODULE, stop).
+    gen_server:stop(?MODULE).
 
 get_server() ->
-    gen_server:call(?MODULE, get).
+    gen_server:call(?MODULE, get_server).
 
 send_server(Msg) ->
-    gen_server:call(?MODULE, {send, Msg}).
+    gen_server:call(?MODULE, {send_server, Msg}).
 
 add_server(Server) ->
-    gen_server:cast(?MODULE, {add, Server}).
+    gen_server:cast(?MODULE, {add_server, Server}).
 
 get_pid(Name) when is_atom(Name) -> whereis(Name);
 get_pid(PID) when is_pid(PID) -> PID.
@@ -50,11 +49,11 @@ balance(Servers) ->
     {{value, Server}, Servers1} = queue:out(Servers),
     {Server, queue:in(Server, Servers1)}.
 
-handle_call(get, _From, Servers) ->
+handle_call(get_server, _From, Servers) ->
     {Server, BalancedServers} = balance(Servers),
     {reply, Server, BalancedServers};
 
-handle_call({send, Msg}, From, Servers) ->
+handle_call({send_server, Msg}, From, Servers) ->
     {Server, BalancedServers} = balance(Servers),
     spawn(fun() ->
         Reply = gen_server:call(Server, Msg),
@@ -62,12 +61,10 @@ handle_call({send, Msg}, From, Servers) ->
     end),
     {noreply, BalancedServers}.
 
-handle_cast({add, Server}, Servers) ->
+handle_cast({add_server, Server}, Servers) ->
     PID = get_pid(Server),
     monitor(process, PID),
-    {noreply, queue:in(PID, Servers)};
-handle_cast(stop, Servers) ->
-    {stop, normal, Servers}.
+    {noreply, queue:in(PID, Servers)}.
 
 handle_info({'DOWN', _, _, PID, _}, Servers) ->
     Fun = fun(Server) -> Server =/= PID end,
@@ -75,12 +72,10 @@ handle_info({'DOWN', _, _, PID, _}, Servers) ->
     {noreply, CleanedServers}.
 
 terminate(_Reason, Queue) ->
-    Servers = queue:to_list(Queue),
-    [ gen_server:cast(Server, stop) || Server <- Servers ],
+    queue:filter(fun(Server) ->
+        ok =:= gen_server:stop(Server, shutdown, infinity)
+    end, Queue),
     ok.
 
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
-format_status(_Type, [_Dict, Queue]) ->
-    queue:to_list(Queue).
+format_status(#{state := Queue} = Status) ->
+    maps:put(state, queue:to_list(Queue), Status).
