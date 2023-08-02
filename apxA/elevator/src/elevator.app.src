@@ -1,0 +1,9 @@
+{application, elevator, [
+    {description, "Elevator"},
+    {id, "elevator"},
+    {vsn, "0.2.0"},
+    {registered, []},
+    {applications, [kernel, stdlib, sasl]},
+    {env, []},
+    {mod, {elevator_app, []}}
+]}.

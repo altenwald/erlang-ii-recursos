@@ -1,4 +1,4 @@
--module(ascensor_sup).
+-module(elevator_sup).
 -author('manuel@altenwald.com').
 
 -behaviour(supervisor).
@@ -14,10 +14,10 @@ init([]) ->
     SupFlags = #{ strategy => one_for_one,
                   intensity => 1,
                   period => 5 },
-    ChildSpec = #{ id => ascensor,
-                   start => {ascensor, start_link, []},
+    ChildSpec = #{ id => elevator,
+                   start => {elevator, start_link, []},
                    restart => permanent,
                    shutdown => brutal_kill,
                    type => worker,
-                   modules => [ascensor]},
+                   modules => [elevator]},
     {ok, {SupFlags, [ChildSpec]}}.

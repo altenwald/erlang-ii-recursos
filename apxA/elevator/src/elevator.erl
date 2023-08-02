@@ -1,8 +1,8 @@
-%% @doc Código simulando un ascensor con una máquina de estados.
+%% @doc Simulating an elevator with a state machine.
 %% @author Manuel Rubio <manuel@altenwald.com> [http://altenwald.org]
 %% @copyright 2018 Manuel Rubio
 %% @version 2
--module(ascensor).
+-module(elevator).
 -author('manuel@altenwald.com').
 -vsn(2).
 
@@ -11,9 +11,9 @@
 -export([
     start_link/0,
     stop/0,
-    boton_num/1,
-    boton_arriba/0,
-    boton_abajo/0
+    button_num/1,
+    button_up/0,
+    button_down/0
 ]).
 
 -export([
@@ -36,36 +36,36 @@
 }).
 
 -spec start_link() -> {ok, pid()} | {error, atom()}.
-%% @returns si todo va bien retornará el PID del proceso.
-%% @doc Esta función es estándar para la mayoría de procesos en OTP.
+%% @returns if everything goes well it will return the process ID.
+%% @doc This function is standard for the most of the OTP processes.
 start_link() ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 -spec stop() -> ok.
-%% @doc detiene el proceso.
+%% @doc stops the process.
 stop() ->
     gen_statem:stop(?MODULE).
 
--spec boton_num(Num :: pos_integer()) -> ok.
-%% @param Num número de planta a la que mover el ascensor.
-%% @returns siempre retorna `ok'.
+-spec button_num(Num :: pos_integer()) -> ok.
+%% @param Num floor number where the elevator should go.
+%% @returns always returns `ok'.
 %% @since 2
-%% @doc Esta función indica al ascensor la planta a la que
-%%      ir o donde pararse.
+%% @doc This function indicates to the elevator the floor where
+%%      it should go.
 %% @end
-boton_num(Num) ->
+button_num(Num) ->
     gen_statem:cast(?MODULE, {pressed, Num}).
 
--spec boton_arriba() -> ok.
+-spec button_up() -> ok.
 %% @returns always returns `ok'.
-%% @deprecated mejor usar {@link boton_num/1}.
-boton_arriba() ->
+%% @deprecated better use {@link button_num/1}.
+button_up() ->
     gen_statem:cast(?MODULE, {pressed, up}).
 
--spec boton_abajo() -> ok.
+-spec button_down() -> ok.
 %% @returns always returns `ok'.
-%% @deprecated mejor usar boton_num/1.
-boton_abajo() ->
+%% @deprecated better use {@link button_num/1}.
+button_down() ->
     gen_statem:cast(?MODULE, {pressed, down}).
 
 -spec callback_mode() -> atom().
@@ -75,39 +75,39 @@ callback_mode() ->
 
 -spec time_to_floor() -> pos_integer().
 %% @private
-%% @doc obtiene el tiempo para cambio de planta.
+%% @doc obtain the time remaining for floor staying.
 time_to_floor() ->
-    application:get_env(ascensor, time_to_floor, ?TIME_TO_FLOOR).
+    application:get_env(elevator, time_to_floor, ?TIME_TO_FLOOR).
 
 -spec init([]) -> {ok, atom(), #state{}, [atom()]}.
 %% @private
-%% @doc función de `gen_statem' para iniciar la máquina de estados.
+%% @doc init the `gen_statem' behaviour for the state machine.
 init([]) ->
-    io:format("* iniciando ascensor, planta 0~n", []),
+    io:format("* initiating elevator, floor 0~n", []),
     {ok, stopped, #state{}, [hibernate]}.
 
 -spec add_num(pos_integer(), #state{}) -> #state{}.
 %% @private
-%% @doc agrega un número a la lista de números presionados.
+%% @doc adds a number to the list of pressed numbers.
 add_num(Num, #state{pressed = Pressed} = StateData) ->
     NewPressed = sets:add_element(Num, Pressed),
     StateData#state{pressed = NewPressed}.
 
 -spec del_num(pos_integer(), #state{}) -> #state{}.
 %% @private
-%% @doc elimina un número de la lista de números presionados.
+%% @doc deletes a number from the list of pressed numbers.
 del_num(Num, #state{pressed = Pressed} = StateData) ->
     NewPressed = sets:del_element(Num, Pressed),
     StateData#state{pressed = NewPressed}.
 
 -spec current(#state{}, pos_integer()) -> #state{}.
 %% @private
-%% @doc especifica la planta actual cambiando el valor de `current_floor'.
+%% @doc specify the current floor changing the value for `current_floor'.
 current(StateData, Num) ->
     StateData#state{current_floor = Num}.
 
 %% @hidden
-%% @doc manejador de eventos de `gen_statem'.
+%% @doc event handler for `gen_statem' behaviour.
 handle_event(cast, {pressed, up}, _Name, #state{current_floor = Current}) ->
     {keep_state_and_data, [{next_event, cast, {pressed, Current + 1}}]};
 handle_event(cast, {pressed, down}, _Name, #state{current_floor = Current}) ->
@@ -115,7 +115,7 @@ handle_event(cast, {pressed, down}, _Name, #state{current_floor = Current}) ->
 handle_event(cast, {pressed, Num}, _Name, _Data)
         when Num =< ?BOTTOM_BORDER_FLOOR orelse
              Num >= ?TOP_BORDER_FLOOR ->
-    io:format("x recibida planta incorrecta: ~p~n", [Num]),
+    io:format("x received an incorrect floor number: ~p~n", [Num]),
     keep_state_and_data;
 handle_event(cast, {pressed, Num}, stopped, StateData) ->
     case StateData#state.current_floor of
@@ -123,28 +123,28 @@ handle_event(cast, {pressed, Num}, stopped, StateData) ->
             NewState = add_num(Num, StateData),
             Next = NewState#state.current_floor + 1,
             Actions = [{state_timeout, time_to_floor(), {stop, Next}}],
-            io:format("* cerrando puertas y subiendo~n", []),
+            io:format("* closing doors and going up~n", []),
             {next_state, going_up, NewState, Actions};
         Current when Current > Num ->
             NewState = add_num(Num, StateData),
             Next = NewState#state.current_floor - 1,
             Actions = [{state_timeout, time_to_floor(), {stop, Next}}],
-            io:format("* cerrando puertas y bajando~n", []),
+            io:format("* closing doors and going down~n", []),
             {next_state, going_down, NewState, Actions};
         Current when Current =:= Num ->
-            io:format("> planta actual, puertas abiertas~n", []),
+            io:format("> current floor, doors opened~n", []),
             keep_state_and_data
     end;
 handle_event(cast, {pressed, Num}, _StateName, StateData) ->
     NewState = add_num(Num, StateData),
     Nums = lists:sort(sets:to_list(NewState#state.pressed)),
-    io:format("+ agregada planta ~p para parar (~p)~n", [Num, Nums]),
+    io:format("+ added floor ~p as future stop (~p)~n", [Num, Nums]),
     {keep_state, NewState};
 
 handle_event(state_timeout, {stop, Current}, StateName, StateData) ->
     case sets:is_element(Current, StateData#state.pressed) of
         true ->
-            io:format("> parando en planta ~p, abriendo puertas~n", [Current]),
+            io:format("> stopping in floor ~p, opening doors~n", [Current]),
             NewState = del_num(Current, current(StateData, Current)),
             {Up, Down} = lists:partition(fun(E) -> E > Current end,
                                          sets:to_list(NewState#state.pressed)),
@@ -169,7 +169,7 @@ handle_event(state_timeout, {stop, Current}, StateName, StateData) ->
                     {next_state, going_up, NewState, Actions}
             end;
         false ->
-            io:format("< pasando por planta ~p~n", [Current]),
+            io:format("< going through floor ~p~n", [Current]),
             Next = case StateName of
                 going_up -> Current + 1;
                 going_down -> Current - 1
@@ -179,22 +179,22 @@ handle_event(state_timeout, {stop, Current}, StateName, StateData) ->
     end.
 
 %% @hidden
-%% @doc función de terminación del proceso de `gen_statem'.
+%% @doc termination function for the `gen_statem' process.
 terminate(_Reason, _StateName, _StateData) ->
     ok.
 
 %% @hidden
-%% @doc función de cambio de código en caliente de `gen_statem'.
-code_change(1, planta_baja, _OldData, _Extra) ->
+%% @doc code change function for hot-swap code.
+code_change(1, ground_floor, _OldData, _Extra) ->
     {ok, stopped, #state{current_floor = 0}};
-code_change(1, primera_planta, _OldData, _Extra) ->
+code_change(1, first_floor, _OldData, _Extra) ->
     {ok, stopped, #state{current_floor = 1}};
-code_change(1, segunda_planta, _OldData, _Extra) ->
+code_change(1, second_floor, _OldData, _Extra) ->
     {ok, stopped, #state{current_floor = 2}};
 code_change({down, 1}, _, StateData, _Extra) ->
     NewState = case StateData#state.current_floor of
-        0 -> planta_baja;
-        1 -> primera_planta;
-        _ -> segunda_planta
+        0 -> ground_floor;
+        1 -> first_floor;
+        _ -> second_floor
     end,
     {ok, NewState, {state}}.
