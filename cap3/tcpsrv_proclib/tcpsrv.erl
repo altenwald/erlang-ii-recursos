@@ -4,8 +4,6 @@
 % proc_lib functions
 -export([srv_init/2, srv_loop/2, worker_init/2, worker_loop/2]).
 
--define(TIMEOUT, 250).
-
 -callback handle_request(Socket :: gen_tcp:socket(), Msg :: term()) -> ok.
 
 start(Port, Module) ->
@@ -34,9 +32,9 @@ worker_loop(Socket, Module) ->
             Module:handle_request(Socket, Msg),
             ?MODULE:worker_loop(Socket, Module);
         {tcp_closed, Socket} ->
-            io:format("Finalizado.~n");
+            io:format("END.~n");
         Any ->
-            io:format("Mensaje no reconocido: ~p~n", [Any])
+            io:format("Unknown message: ~p~n", [Any])
     end.
 
 send(Socket, Msg) ->
