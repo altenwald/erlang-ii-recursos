@@ -1,4 +1,4 @@
--module(balanceador).
+-module(balancer).
 -author('manuel@altenwald.com').
 
 -behaviour(gen_server).

@@ -1,4 +1,4 @@
--module(diccionario).
+-module(dictionary).
 -author('manuel@altenwald.com').
 
 -behaviour(gen_server).
