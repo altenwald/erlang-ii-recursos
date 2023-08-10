@@ -7,15 +7,15 @@
          terminate/3]).
 
 %% definir funciones de estado. Ejemplo:
--export([encendido/3,
-         apagado/3]).
+-export([turned_on/3,
+         turned_off/3]).
 
 callback_mode() -> state_functions.
 
 -record(state_data, {}).
 
 init([]) ->
-    {ok, apagado, #state_data{}}.
+    {ok, turned_off, #state_data{}}.
 
 code_change(_Vsn, State, Data, _Extra) ->
     {ok, State, Data}.
@@ -23,8 +23,8 @@ code_change(_Vsn, State, Data, _Extra) ->
 terminate(_Reason, _State, _Data) ->
     ok.
 
-encendido(EventType, EventContent, Data) ->
-    {next_state, apagado, Data}.
+turned_on(_EventType, _EventContent, Data) ->
+    {next_state, turned_off, Data}.
 
-apagado(EventType, EventContent, Data) ->
-    {next_state, encendido, Data}.
+turned_off(_EventType, _EventContent, Data) ->
+    {next_state, turned_on, Data}.

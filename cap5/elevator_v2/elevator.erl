@@ -1,4 +1,4 @@
--module(ascensor).
+-module(elevator).
 -author('manuel@altenwald.com').
 -vsn(2).
 
@@ -7,9 +7,9 @@
 -export([
     start_link/0,
     stop/0,
-    boton_num/1,
-    boton_arriba/0,
-    boton_abajo/0
+    button_num/1,
+    button_up/0,
+    button_down/0
 ]).
 
 -export([
@@ -36,20 +36,20 @@ start_link() ->
 stop() ->
     gen_statem:stop(?MODULE).
 
-boton_num(Num) ->
+button_num(Num) ->
     gen_statem:cast(?MODULE, {pressed, Num}).
 
-boton_arriba() ->
+button_up() ->
     gen_statem:cast(?MODULE, {pressed, up}).
 
-boton_abajo() ->
+button_down() ->
     gen_statem:cast(?MODULE, {pressed, down}).
 
 callback_mode() ->
     handle_event_function.
 
 init([]) ->
-    io:format("* iniciando ascensor, planta 0~n", []),
+    io:format("* initiating elevator, floor 0~n", []),
     {ok, stopped, #state{}, [hibernate]}.
 
 add_num(Num, #state{pressed = Pressed} = StateData) ->
@@ -70,7 +70,7 @@ handle_event(cast, {pressed, down}, _Name, #state{current_floor = Current}) ->
 handle_event(cast, {pressed, Num}, _Name, _Data)
         when Num =< ?BOTTOM_BORDER_FLOOR orelse
              Num >= ?TOP_BORDER_FLOOR ->
-    io:format("x recibida planta incorrecta: ~p~n", [Num]),
+    io:format("x received incorrect floor: ~p~n", [Num]),
     keep_state_and_data;
 handle_event(cast, {pressed, Num}, stopped, StateData) ->
     case StateData#state.current_floor of
@@ -78,28 +78,28 @@ handle_event(cast, {pressed, Num}, stopped, StateData) ->
             NewState = add_num(Num, StateData),
             Next = NewState#state.current_floor + 1,
             Actions = [{state_timeout, ?TIME_TO_FLOOR, {stop, Next}}],
-            io:format("* cerrando puertas y subiendo~n", []),
+            io:format("* closing doors and going up~n", []),
             {next_state, going_up, NewState, Actions};
         Current when Current > Num ->
             NewState = add_num(Num, StateData),
             Next = NewState#state.current_floor - 1,
             Actions = [{state_timeout, ?TIME_TO_FLOOR, {stop, Next}}],
-            io:format("* cerrando puertas y bajando~n", []),
+            io:format("* closing doors and going down~n", []),
             {next_state, going_down, NewState, Actions};
         Current when Current =:= Num ->
-            io:format("> planta actual, puertas abiertas~n", []),
+            io:format("> current floor, doors opened~n", []),
             keep_state_and_data
     end;
 handle_event(cast, {pressed, Num}, _StateName, StateData) ->
     NewState = add_num(Num, StateData),
     Nums = lists:sort(sets:to_list(NewState#state.pressed)),
-    io:format("+ agregada planta ~p para parar (~p)~n", [Num, Nums]),
+    io:format("+ adding floor ~p to stop (~p)~n", [Num, Nums]),
     {keep_state, NewState};
 
 handle_event(state_timeout, {stop, Current}, StateName, StateData) ->
     case sets:is_element(Current, StateData#state.pressed) of
         true ->
-            io:format("> parando en planta ~p, abriendo puertas~n", [Current]),
+            io:format("> stopping on floor ~p, opening doors~n", [Current]),
             NewState = del_num(Current, current(StateData, Current)),
             {Up, Down} = lists:partition(fun(E) -> E > Current end,
                                          sets:to_list(NewState#state.pressed)),
@@ -124,7 +124,7 @@ handle_event(state_timeout, {stop, Current}, StateName, StateData) ->
                     {next_state, going_up, NewState, Actions}
             end;
         false ->
-            io:format("< pasando por planta ~p~n", [Current]),
+            io:format("< passing floor ~p~n", [Current]),
             Next = case StateName of
                 going_up -> Current + 1;
                 going_down -> Current - 1
@@ -136,16 +136,16 @@ handle_event(state_timeout, {stop, Current}, StateName, StateData) ->
 terminate(_Reason, _StateName, _StateData) ->
     ok.
 
-code_change(1, planta_baja, _OldData, _Extra) ->
+code_change(1, ground_floor, _OldData, _Extra) ->
     {ok, stopped, #state{current_floor = 0}};
-code_change(1, primera_planta, _OldData, _Extra) ->
+code_change(1, first_floor, _OldData, _Extra) ->
     {ok, stopped, #state{current_floor = 1}};
-code_change(1, segunda_planta, _OldData, _Extra) ->
+code_change(1, second_floor, _OldData, _Extra) ->
     {ok, stopped, #state{current_floor = 2}};
 code_change({down, 1}, _, StateData, _Extra) ->
     NewState = case StateData#state.current_floor of
-        0 -> planta_baja;
-        1 -> primera_planta;
-        _ -> segunda_planta
+        0 -> ground_floor;
+        1 -> first_floor;
+        _ -> second_floor
     end,
     {ok, NewState, {state}}.

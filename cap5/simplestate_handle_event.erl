@@ -12,7 +12,7 @@ callback_mode() -> handle_event_function.
 -record(state_data, {}).
 
 init([]) ->
-    {ok, apagado, #state_data{}}.
+    {ok, turned_off, #state_data{}}.
 
 code_change(_Vsn, State, Data, _Extra) ->
     {ok, State, Data}.
@@ -20,8 +20,8 @@ code_change(_Vsn, State, Data, _Extra) ->
 terminate(_Reason, _State, _Data) ->
     ok.
 
-handle_event(EventType, EventContent, encendido, Data) ->
-    {next_state, apagado, Data}.
+handle_event(_EventType, _EventContent, turned_on, Data) ->
+    {next_state, turned_off, Data};
 
-handle_event(EventType, EventContent, apagado, Data) ->
-    {next_state, encendido, Data}.
+handle_event(_EventType, _EventContent, turned_off, Data) ->
+    {next_state, turned_on, Data}.
