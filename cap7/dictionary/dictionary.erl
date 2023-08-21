@@ -1,4 +1,4 @@
--module(diccionario).
+-module(dictionary).
 -author('manuel@altenwald.com').
 
 -behaviour(gen_server).
@@ -26,18 +26,18 @@ stop(Server) ->
     gen_server:stop(Server).
 
 get_value(Server, Key) ->
-    gen_server:call(Server, {get, Key}).
+    gen_server:call(Server, {get_value, Key}).
 
 add_value(Server, Key, Value) ->
-    gen_server:cast(Server, {add, Key, Value}).
+    gen_server:cast(Server, {add_value, Key, Value}).
 
 init([]) ->
     {ok, #{}, ?TIMEOUT}.
 
-handle_call({get, Key}, _From, Map) ->
-    {reply, maps:get(Key, Map), Map, ?TIMEOUT}.
+handle_call({get_value, Key}, _From, Map) ->
+    {reply, maps:get(Key, Map, undefined), Map, ?TIMEOUT}.
 
-handle_cast({add, Key, Value}, Map) ->
+handle_cast({add_value, Key, Value}, Map) ->
     {noreply, maps:put(Key, Value, Map), ?TIMEOUT}.
 
 handle_info(timeout, State) ->

@@ -26,8 +26,8 @@ init([Supervisor]) ->
     {ok, #state{supervisor = Supervisor}}.
 
 handle_call({echo, Msg}, From, State) ->
-    Child = get_child(State#state.supervisor, diccionario),
-    diccionario:add_value(Child, Msg, From),
+    Child = get_child(State#state.supervisor, dictionary),
+    dictionary:add_value(Child, Msg, From),
     {reply, Msg, State}.
 
 handle_cast(_Msg, State) ->

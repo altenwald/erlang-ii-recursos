@@ -1,4 +1,4 @@
--module(tarea).
+-module(task).
 
 -export([start_link/1]).
 

@@ -9,11 +9,11 @@
          write/1,
          read/0]).
 
--define(FICHERO, "anotaciones.log").
+-define(FILE, "file.log").
 
 start_link() ->
     supervisor_bridge:start_link({local, ?MODULE}, ?MODULE,
-                                 [?FICHERO]).
+                                 [?FILE]).
 
 write(Bytes) ->
     file:write(whereis(logs), Bytes).
@@ -22,8 +22,8 @@ read() ->
     file:position(whereis(logs), bof),
     file:read(logs, 1024).
 
-init([Fichero]) ->
-    case file:open(Fichero, [read, write]) of
+init([File]) ->
+    case file:open(File, [read, write]) of
         {ok, PID} ->
             io:format("pid => ~p~n", [PID]),
             register(logs, PID),
