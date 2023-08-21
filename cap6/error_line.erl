@@ -35,7 +35,7 @@ get_date() ->
     {Y,M,D} = date(),
     {H,I,S} = time(),
     io_lib:format("~4..0b-~2..0b-~2..0bT~2..0b:~2..0b:~2..0b",
-                  [Y,M,D,H,I,S]).
+                  [Y, M, D, H, I, S]).
 
 get_event({error_report, _, {_, _, Msg}}) ->
     io_lib:format("[ERROR REPORT] ~p", [Msg]);

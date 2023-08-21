@@ -1,4 +1,4 @@
--module(notificaciones).
+-module(notifications).
 -author(manuel@altenwald.com).
 
 -behaviour(gen_event).

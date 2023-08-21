@@ -1,4 +1,4 @@
--module(alarmas_defcon2).
+-module(alarms_defcon2).
 -author('manuel@altenwald.com').
 
 -behaviour(gen_event).
@@ -23,16 +23,16 @@ handle_call(_Request, State) ->
     {ok, Reply, State}.
 
 handle_event({defcon, 1}, State) ->
-    {swap_handler, ["DEFCON1"], State, alarmas_defcon1, []};
+    {swap_handler, ["DEFCON1"], State, alarms_defcon1, []};
 
 handle_event(Event, State) ->
     io:format("DEFCON2: ~p~n", [Event]),
     {ok, State}.
 
 terminate([Arg], State) ->
-    io:format("Pasando a ~s~n", [Arg]),
+    io:format("Changing to ~s~n", [Arg]),
     State;
 
 terminate([], _State) ->
-    io:format("Finalizado.~n", []),
+    io:format("Finished.~n", []),
     ok.

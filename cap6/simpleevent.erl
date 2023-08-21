@@ -28,14 +28,14 @@ handle_call(_Request, State) ->
 handle_event(_Event, State) ->
     {ok, State}.
 
-% opcional
+% optional
 handle_info(_Info, State) ->
     {ok, State}.
 
-% opcional
+% optional
 terminate([], _State) ->
     ok.
 
-% opcional
+% optional
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.

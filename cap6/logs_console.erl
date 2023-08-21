@@ -1,4 +1,4 @@
--module(logs_consola).
+-module(logs_console).
 -author('manuel@altenwald.com').
 
 -behaviour(gen_event).
@@ -35,5 +35,5 @@ handle_event(Event, State) ->
     {ok, State}.
 
 code_change(_OldVsn, State, _Extra) ->
-    io:format("consola no cambia!~n", []),
+    io:format("console no changes!~n", []),
     {ok, State}.

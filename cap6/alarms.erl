@@ -1,14 +1,14 @@
--module(alarmas).
+-module(alarms).
 -author('manuel@altenwald.com').
 
 -export([start_link/1, stop/0, notify/1, defcon/1]).
 
-to_name(1) -> alarmas_defcon1;
-to_name(2) -> alarmas_defcon2.
+to_name(1) -> alarms_defcon1;
+to_name(2) -> alarms_defcon2.
 
-start_link(Numero) ->
+start_link(Number) ->
     {ok, PID} = gen_event:start_link({local, ?MODULE}),
-    ok = gen_event:add_sup_handler(?MODULE, to_name(Numero), []),
+    ok = gen_event:add_sup_handler(?MODULE, to_name(Number), []),
     {ok, PID}.
 
 stop() ->
@@ -17,5 +17,5 @@ stop() ->
 notify(Event) ->
     gen_event:notify(?MODULE, Event).
 
-defcon(Numero) ->
-    gen_event:sync_notify(?MODULE, {defcon, Numero}).
+defcon(Number) ->
+    gen_event:sync_notify(?MODULE, {defcon, Number}).

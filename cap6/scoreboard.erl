@@ -1,7 +1,7 @@
--module(marcador).
+-module(scoreboard).
 -author('manuel@altenwald.com').
 
--export([start_link/0, stop/0, notify/1, anota/2]).
+-export([start_link/0, stop/0, notify/1, goal/2]).
 
 start_link() ->
     gen_event:start_link({local, ?MODULE}).
@@ -12,5 +12,5 @@ stop() ->
 notify(Event) ->
     gen_event:notify(?MODULE, Event).
 
-anota(Quien, Cuanto) ->
-    notify({puntua, Quien, Cuanto}).
+goal(Who, HowMany) ->
+    notify({goal, Who, HowMany}).
