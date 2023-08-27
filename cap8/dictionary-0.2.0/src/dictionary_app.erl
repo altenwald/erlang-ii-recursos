@@ -1,10 +1,10 @@
--module(diccionario_app).
+-module(dictionary_app).
 -behaviour(application).
 
 -export([start/2, stop/1]).
 
 start(_Type, _Args) ->
-    diccionario_sup:start_link().
+    dictionary_sup:start_link().
 
 stop(_State) ->
     ok.

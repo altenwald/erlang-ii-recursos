@@ -1,0 +1,11 @@
+{"0.2.0", [
+    {"0.1.0", [
+        {apply, {application, set_env,
+                 [dictionary, dictionaries, [en, es]]}},
+        {restart_application, dictionary}
+    ]}
+], [
+    {"0.1.0", [
+        {restart_application, dictionary}
+    ]}
+]}.

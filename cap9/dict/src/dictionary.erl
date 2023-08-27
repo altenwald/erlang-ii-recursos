@@ -1,4 +1,4 @@
--module(diccionario).
+-module(dictionary).
 -author('manuel@altenwald.com').
 
 -behaviour(gen_server).
@@ -22,12 +22,12 @@ start_link(Args) ->
     gen_server:start_link(?MODULE, Args, []).
 
 get_value(Key) ->
-    poolboy:transaction(diccionario, fun(Server) ->
+    poolboy:transaction(dictionary, fun(Server) ->
         gen_server:call(Server, {get, Key})
     end).
 
 add_value(Key, Value) ->
-    poolboy:transaction(diccionario, fun(Server) ->
+    poolboy:transaction(dictionary, fun(Server) ->
         gen_server:cast(Server, {add, Key, Value})
     end).
 
@@ -35,13 +35,13 @@ init([]) ->
     {ok, undefined}.
 
 handle_call({get, Key}, _From, State) ->
-    case ets:lookup(diccionario, Key) of
+    case ets:lookup(dictionary, Key) of
         [{Key, Value}] -> {reply, Value, State};
-        [] -> {reply, undefiend, State}
+        [] -> {reply, undefined, State}
     end.
 
 handle_cast({add, Key, Value}, State) ->
-    ets:insert(diccionario, {Key, Value}),
+    ets:insert(dictionary, {Key, Value}),
     {noreply, State}.
 
 handle_info(_Info, State) ->

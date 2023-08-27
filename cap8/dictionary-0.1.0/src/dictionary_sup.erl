@@ -1,4 +1,4 @@
--module(diccionario_sup).
+-module(dictionary_sup).
 -behaviour(supervisor).
 
 -export([start_link/0]).
@@ -12,10 +12,10 @@ init([]) ->
     SupFlags = #{ strategy => one_for_one,
                   intensity => 1,
                   period => 5 },
-    ChildSpec = #{ id => diccionario,
-                   start => {diccionario, start_link, []},
+    ChildSpec = #{ id => dictionary,
+                   start => {dictionary, start_link, []},
                    restart => permanent,
                    shutdown => brutal_kill,
                    type => worker,
-                   modules => [diccionario]},
+                   modules => [dictionary]},
     {ok, {SupFlags, [ChildSpec]}}.

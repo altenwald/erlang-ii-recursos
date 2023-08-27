@@ -1,4 +1,4 @@
--module(diccionario_sup).
+-module(dictionary_sup).
 -behaviour(supervisor).
 
 -export([start_link/0]).
@@ -11,16 +11,16 @@ start_link() ->
 child(Id) ->
     SupId = list_to_atom("dict_" ++ atom_to_list(Id)),
     #{ id => SupId,
-       start => {diccionario, start_link, []},
+       start => {dictionary, start_link, []},
        restart => permanent,
        shutdown => brutal_kill,
        type => worker,
-       modules => [diccionario]}.
+       modules => [dictionary]}.
 
 init([]) ->
     SupFlags = #{ strategy => one_for_one,
                   intensity => 1,
                   period => 5 },
-    Dic = application:get_env(diccionario, diccionarios, []),
+    Dic = application:get_env(dictionary, dictionaries, []),
     Children = [ child(Id) || Id <- Dic ],
     {ok, {SupFlags, Children}}.

@@ -1,8 +1,8 @@
-{application, diccionario, [
-    {description, "Diccionarios"},
+{application, dictionary, [
+    {description, "Dictionaries"},
     {vsn, "0.1.0"},
     {registered, []},
-    {mod, {diccionario_app, []}},
+    {mod, {dictionary_app, []}},
     {applications, [
         kernel,
         stdlib,

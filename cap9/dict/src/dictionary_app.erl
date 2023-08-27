@@ -1,4 +1,4 @@
--module(diccionario_app).
+-module(dictionary_app).
 -behaviour(application).
 -behaviour(supervisor).
 
@@ -11,7 +11,7 @@
 -define(SERVER, ?MODULE).
 
 start(_StartType, _StartArgs) ->
-    ets:new(diccionario, [named_table, set, public]),
+    ets:new(dictionary, [named_table, set, public]),
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 stop(_State) ->
@@ -21,10 +21,10 @@ init([]) ->
     SupFlags = #{ strategy => one_for_one,
                   intensity => 1,
                   period => 5 },
-    Name = diccionario_pool,
+    Name = dictionary_pool,
     PoolArgs = [
-        {name, {local, diccionario}},
-        {worker_module, diccionario},
+        {name, {local, dictionary}},
+        {worker_module, dictionary},
         {size, 2},
         {max_overflow, 5},
         {strategy, fifo}
