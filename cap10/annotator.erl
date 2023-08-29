@@ -1,4 +1,4 @@
--module(anotador).
+-module(annotator).
 -author('manuel@altenwald.com').
 
 -export([log/2]).

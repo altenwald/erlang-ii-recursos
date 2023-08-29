@@ -1,12 +1,12 @@
--module(filtros).
+-module(filters).
 -author('manuel@altenwald.com').
 
--export([trace_id/2, peticion/1]).
+-export([trace_id/2, request/1]).
 
 -include_lib("kernel/include/logger.hrl").
 
-peticion(Traza) ->
-    ?LOG_DEBUG("Recibida la traza ~p", [Traza], #{trace_id => Traza}),
+request(Trace) ->
+    ?LOG_DEBUG("Received ~p", [Trace], #{trace_id => Trace}),
     ok.
 
 trace_id(#{meta := #{trace_id := TraceId}} = LogEvent, {trace_id, TraceId}) ->
