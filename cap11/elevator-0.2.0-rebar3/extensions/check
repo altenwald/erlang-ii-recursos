@@ -1,0 +1,16 @@
+#!/bin/bash
+
+case "$1" in
+    "help")
+        echo "$(basename $0) status"
+        exit 0
+        ;;
+    *)
+        STATUS=$(relx_nodetool rpc "erlang:whereis(elevator_sup)")
+        if [ "$STATUS" == "undefined" ]; then
+            echo "down!"
+        else
+            echo "up!"
+        fi
+        ;;
+esac

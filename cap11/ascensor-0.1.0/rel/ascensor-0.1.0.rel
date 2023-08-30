@@ -1,6 +1,0 @@
-{release, {"ascensor", "0.1.0"}, {erts, "13.1.1"}, [
-    {kernel, "8.5.1"},
-    {stdlib, "4.1.1"},
-    {sasl, "4.2"},
-    {ascensor, "0.1.0"}
-]}.

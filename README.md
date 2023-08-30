@@ -1,13 +1,12 @@
-Erlang/OTP Volumen II: Las bases de OTP
+Erlang/OTP Volume II: The basics of OTP
 =======================================
 
-Estos son los ejemplos contenidos a lo largo de los capítulos del Volumen II de Erlang/OTP Las bases de OTP.
+These are the examples contained throughout the chapters of Volume II of Erlang/OTP The Basics of OTP.
 
-Corresponden a la segunda edición:
+They correspond to the second edition:
 
-https://altenwald.com/book/erlang-ii
+https://altenwald.com/book/erlang-ii-en
 
-Cualquier duda o comentario no dudes en agregar un "issue" o si has encontrado un fallo y quieres enviar el cambio puedes hacer un "fork" y enviar un "pull request".
+If you have any questions or comments, do not hesitate to add an "issue" or if you have found a bug and want to send the change, you can make a "fork" and send a "pull request".
 
-Un saludo!
-
+All the best!

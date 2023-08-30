@@ -1,0 +1,6 @@
+{release, {"elevator", "0.2.0"}, {erts, "13.1"}, [
+    {kernel, "8.5.1"},
+    {stdlib, "4.1.1"},
+    {sasl, "4.2"},
+    {elevator, "0.2.0"}
+]}.
